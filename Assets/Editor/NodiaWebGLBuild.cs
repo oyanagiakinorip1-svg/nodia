@@ -56,6 +56,7 @@ namespace Nodia.EditorTools
             if (report.summary.result == BuildResult.Succeeded)
             {
                 MakeCanvasFillViewport(outputDir);
+                AddMobileWarning(outputDir);
                 Debug.Log($"NODIA: WebGL build succeeded -> {outputDir} " +
                           $"({report.summary.totalSize / (1024f * 1024f):0.0} MB)");
             }
@@ -102,6 +103,39 @@ namespace Nodia.EditorTools
                     File.WriteAllText(cssPath, css);
                 }
             }
+        }
+
+        // NODIA needs WASD/mouse-look/Tab, none of which exist on a phone or
+        // tablet - without this, opening the link on one just shows a black
+        // screen that never responds to touch, which reads as broken rather
+        // than "wrong device". This overlay sits on top of the game (which
+        // still loads underneath) rather than trying to stop Unity's own
+        // loader script, so it can't break the desktop load path.
+        private static void AddMobileWarning(string outputDir)
+        {
+            var indexPath = Path.Combine(outputDir, "index.html");
+            if (!File.Exists(indexPath)) return;
+
+            var html = File.ReadAllText(indexPath);
+            const string marker = "nodia-mobile-block";
+            if (html.Contains(marker)) return;
+
+            const string block = @"
+    <div id=""nodia-mobile-block"" style=""display:none;position:fixed;inset:0;z-index:99999;background:#2f333e;color:#e7e8ee;font-family:sans-serif;align-items:center;justify-content:center;text-align:center;padding:32px;"">
+      <div>
+        <p style=""font-size:20px;font-weight:bold;margin-bottom:12px;"">NODIAはPC向けのアプリです</p>
+        <p style=""font-size:15px;opacity:0.8;line-height:1.7;"">キーボードとマウスを使って操作するため、<br>スマートフォン・タブレットではまだご利用いただけません。<br>PC(Windows / Mac)のブラウザから開いてください。</p>
+      </div>
+    </div>
+    <script>
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        document.getElementById('nodia-mobile-block').style.display = 'flex';
+      }
+    </script>
+";
+
+            html = html.Replace("<body>", "<body>" + block);
+            File.WriteAllText(indexPath, html);
         }
     }
 }
