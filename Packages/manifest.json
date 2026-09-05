@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.github.kou-yeung.webglinput": "https://github.com/kou-yeung/WebGLInput.git?path=Assets/WebGLSupport",
     "com.unity.ai.navigation": "2.0.14",
     "com.unity.collab-proxy": "2.13.3",
     "com.unity.ide.rider": "3.0.38",

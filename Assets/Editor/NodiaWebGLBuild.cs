@@ -41,7 +41,13 @@ namespace Nodia.EditorTools
             var outputDir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "nodia-web"));
             Directory.CreateDirectory(outputDir);
 
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+            // Brotli-compress the build (much smaller download - the wasm
+            // alone was ~44MB uncompressed), but with the decompression
+            // fallback on: the browser-side loader unpacks it with a small
+            // bundled WASM decompressor, so Vercel can keep serving it as
+            // plain static files with no special Content-Encoding headers.
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
 
             Debug.Log($"NODIA: building WebGL to {outputDir} - this can take several minutes.");
 

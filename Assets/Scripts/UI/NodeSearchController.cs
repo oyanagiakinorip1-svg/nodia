@@ -31,6 +31,7 @@ namespace Nodia.UI
         {
             panel.SetActive(false);
             queryField.onValueChanged.AddListener(_ => RefreshResults());
+            WebGLTextInputFocus.Wire(queryField);
         }
 
         private void Update()

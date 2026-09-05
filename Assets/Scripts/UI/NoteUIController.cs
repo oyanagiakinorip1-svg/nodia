@@ -29,6 +29,8 @@ namespace Nodia.UI
             saveButton.onClick.AddListener(Save);
             closeButton.onClick.AddListener(Close);
             deleteButton.onClick.AddListener(Delete);
+            WebGLTextInputFocus.Wire(titleField);
+            WebGLTextInputFocus.Wire(contentField);
         }
 
         public void Open(NodeView node)

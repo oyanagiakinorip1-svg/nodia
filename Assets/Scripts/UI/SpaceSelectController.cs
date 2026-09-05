@@ -45,6 +45,7 @@ namespace Nodia.UI
             confirmDeleteButton.onClick.AddListener(OnConfirmDelete);
             cancelDeleteButton.onClick.AddListener(() => confirmDeletePanel.SetActive(false));
             if (closeButton != null) closeButton.onClick.AddListener(Close);
+            WebGLTextInputFocus.Wire(newSpaceNameField);
         }
 
         private void Update()
