@@ -102,7 +102,7 @@ namespace Nodia.EditorTools
                 "左クリック（ノードに向けて）: メモを開く\n" +
                 "Shift + 左クリック : ノードを2つ選んで接続\n" +
                 "Shift + 右クリック : 接続線を直接クリックして削除\n\n" +
-                "Tab または右上のボタン : メニューを開く（ノード検索・スペース切り替え・設定はここから）";
+                "Tab : メニューを開く（ノード検索・スペース切り替え・設定はここから）";
 
             var closeButton = GetOrCreateCloseButton(panel.transform, cardSprite, boldFont);
 

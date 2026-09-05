@@ -21,6 +21,8 @@ namespace Nodia.UI
         [SerializeField] private FPSController fpsController;
         [SerializeField] private SpaceSelectController spaceSelect;
 
+        public bool IsOpen => panel != null && panel.activeSelf;
+
         private void Awake()
         {
             panel.SetActive(false);

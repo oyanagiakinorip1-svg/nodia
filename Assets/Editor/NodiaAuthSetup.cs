@@ -76,6 +76,9 @@ namespace Nodia.EditorTools
             SetField(controller, "statusText", statusText);
             SetField(controller, "fpsController", fpsController);
 
+            var interactor = playerGO != null ? playerGO.GetComponent<Nodia.Interaction.PlayerInteractor>() : null;
+            if (interactor != null) SetField(interactor, "authStartup", controller);
+
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             Debug.Log("NODIA: auth startup screen ready. Run Nodia > Setup Space Select next to wire the screen after it.");
         }

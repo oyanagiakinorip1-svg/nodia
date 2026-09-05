@@ -25,6 +25,7 @@ namespace Nodia.Interaction
         [SerializeField] private SettingsController settingsController;
         [SerializeField] private HelpController helpController;
         [SerializeField] private MainMenuController mainMenu;
+        [SerializeField] private AuthStartupController authStartup;
         [SerializeField] private GameObject crosshair;
         [SerializeField] private float interactRange = 20f;
         [SerializeField] private float spawnDistance = 4f;
@@ -39,7 +40,8 @@ namespace Nodia.Interaction
                 || (spaceSelect != null && spaceSelect.IsOpen)
                 || (settingsController != null && settingsController.IsOpen)
                 || (helpController != null && helpController.IsOpen)
-                || (mainMenu != null && mainMenu.IsOpen);
+                || (mainMenu != null && mainMenu.IsOpen)
+                || (authStartup != null && authStartup.IsOpen);
             if (crosshair != null) crosshair.SetActive(!uiOpen);
 
             // While the note panel or search overlay is open, left clicks

@@ -63,6 +63,7 @@ namespace Nodia.EditorTools
             {
                 MakeCanvasFillViewport(outputDir);
                 AddMobileWarning(outputDir);
+                ApplyBranding(outputDir);
                 Debug.Log($"NODIA: WebGL build succeeded -> {outputDir} " +
                           $"({report.summary.totalSize / (1024f * 1024f):0.0} MB)");
             }
@@ -142,6 +143,27 @@ namespace Nodia.EditorTools
 
             html = html.Replace("<body>", "<body>" + block);
             File.WriteAllText(indexPath, html);
+        }
+
+        // Unity's default WebGL template title is "Unity Web Player | {name}"
+        // and its favicon is a generic Unity logo - swap both for the
+        // browser tab to actually read as NODIA.
+        private static void ApplyBranding(string outputDir)
+        {
+            var indexPath = Path.Combine(outputDir, "index.html");
+            if (File.Exists(indexPath))
+            {
+                var html = File.ReadAllText(indexPath);
+                html = html.Replace("<title>Unity Web Player | NODIA</title>", "<title>NODIA</title>");
+                File.WriteAllText(indexPath, html);
+            }
+
+            const string iconSource = "Assets/Icons/NODIA_favicon.ico";
+            var faviconPath = Path.Combine(outputDir, "TemplateData", "favicon.ico");
+            if (File.Exists(iconSource) && Directory.Exists(Path.GetDirectoryName(faviconPath)!))
+            {
+                File.Copy(iconSource, faviconPath, overwrite: true);
+            }
         }
     }
 }
