@@ -15,6 +15,10 @@
 /[Uu]ser[Ss]ettings/
 *.log
 
+# Burst-generated build byproduct that lands at the project root when a
+# WebGL build runs with the project as the working directory.
+/Data/
+
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
 *.blend1.meta
