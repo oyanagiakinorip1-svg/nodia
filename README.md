@@ -6,9 +6,9 @@
 Unity製のWebGLクライアント本体で、バックエンドは別リポジトリの
 [nodia-server](https://github.com/oyanagiakinorip1-svg/nodia-server)(Hono API + Supabase)。
 
-## 構成(Web系の方向け)
+## 構成
 
-このリポジトリはUnityプロジェクトなので、見慣れない構造になっていますが、
+このリポジトリはUnityプロジェクトなので、見慣れない構造になっているかもしれませんが、
 実際のロジックが入っているのは以下だけです。それ以外(`ProjectSettings/`、
 `Packages/`、`Library/`相当のもの)はUnityが自動生成・管理するプロジェクト設定です。
 
