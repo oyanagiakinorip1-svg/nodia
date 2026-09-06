@@ -26,7 +26,7 @@ namespace Nodia.EditorTools
         [MenuItem("Nodia/Setup Settings")]
         public static void SetupSettings()
         {
-            if (!TryGetShared(out var canvas, out _, out var fpsController, out var cardSprite,
+            if (!TryGetShared(out var canvas, out var playerGO, out var fpsController, out var cardSprite,
                     out var dotSprite, out var regularFont, out var boldFont))
             {
                 return;
@@ -64,6 +64,11 @@ namespace Nodia.EditorTools
             var menuGO = GameObject.Find("MainMenuController");
             if (menuGO != null) SetField(menuGO.GetComponent<MainMenuController>(), "settingsController", controller);
 
+            // Never wired anywhere before - PlayerInteractor didn't know
+            // Settings existed, so nodes stayed clickable through it.
+            var interactor = playerGO != null ? playerGO.GetComponent<Nodia.Interaction.PlayerInteractor>() : null;
+            if (interactor != null) SetField(interactor, "settingsController", controller);
+
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             Debug.Log("NODIA: settings screen ready - opened from the main menu (Tab).");
         }
@@ -71,7 +76,7 @@ namespace Nodia.EditorTools
         [MenuItem("Nodia/Setup Help")]
         public static void SetupHelp()
         {
-            if (!TryGetShared(out var canvas, out _, out var fpsController, out var cardSprite,
+            if (!TryGetShared(out var canvas, out var playerGO, out var fpsController, out var cardSprite,
                     out var dotSprite, out var regularFont, out var boldFont))
             {
                 return;
@@ -120,6 +125,11 @@ namespace Nodia.EditorTools
 
             var spaceSelectGO = GameObject.Find("SpaceSelectController");
             if (spaceSelectGO != null) SetField(spaceSelectGO.GetComponent<SpaceSelectController>(), "helpController", controller);
+
+            // Never wired anywhere before - PlayerInteractor didn't know
+            // Help existed, so nodes stayed clickable through it.
+            var interactor = playerGO != null ? playerGO.GetComponent<Nodia.Interaction.PlayerInteractor>() : null;
+            if (interactor != null) SetField(interactor, "helpController", controller);
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             Debug.Log("NODIA: help screen ready - opened from the main menu (Tab).");

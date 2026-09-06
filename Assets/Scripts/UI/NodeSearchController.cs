@@ -16,6 +16,7 @@ namespace Nodia.UI
     public class NodeSearchController : MonoBehaviour
     {
         [SerializeField] private GameObject panel;
+        [SerializeField] private Button closeButton;
         [SerializeField] private TMP_InputField queryField;
         [SerializeField] private Transform resultsContainer;
         [SerializeField] private GameObject resultRowPrefab;
@@ -32,6 +33,7 @@ namespace Nodia.UI
             panel.SetActive(false);
             queryField.onValueChanged.AddListener(_ => RefreshResults());
             WebGLTextInputFocus.Wire(queryField);
+            if (closeButton != null) closeButton.onClick.AddListener(Close);
         }
 
         private void Update()

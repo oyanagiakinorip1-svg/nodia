@@ -54,7 +54,8 @@ namespace Nodia.EditorTools
             var panel = GetOrCreatePanel(canvas.transform, cardSprite, dotSprite, boldFont);
             var queryField = GetOrCreateQueryField(panel.transform, cardSprite, regularFont);
             var resultsContainer = GetOrCreateResultsContainer(panel.transform);
-            GetOrCreateHint(panel.transform, regularFont);
+            RemoveObsoleteHint(panel.transform);
+            var closeButton = GetOrCreateCloseButton(panel.transform, cardSprite, boldFont);
 
             var controllerGO = GameObject.Find("NodeSearchController");
             if (controllerGO == null) controllerGO = new GameObject("NodeSearchController");
@@ -69,6 +70,7 @@ namespace Nodia.EditorTools
             SetField(controller, "fpsController", fpsController);
             SetField(controller, "playerTransform", playerGO.transform);
             SetField(controller, "playerController", playerGO.GetComponent<CharacterController>());
+            SetField(controller, "closeButton", closeButton);
 
             SetField(interactor, "searchController", controller);
 
@@ -179,19 +181,55 @@ namespace Nodia.EditorTools
             return input;
         }
 
+        // A plain, unclipped VerticalLayoutGroup here used to let a long
+        // result list spill out past the panel's bottom edge once there
+        // were enough nodes to fill it. Wrapping it in a masked, scrollable
+        // viewport (same footprint the old unclipped container used) fixes
+        // that: results beyond what fits are reached by scrolling instead
+        // of overflowing the card.
         private static Transform GetOrCreateResultsContainer(Transform panel)
         {
-            var existing = panel.Find("ResultsContainer");
-            var containerGO = existing != null ? existing.gameObject
+            var viewportExisting = panel.Find("ResultsViewport");
+            GameObject viewportGO;
+            if (viewportExisting != null)
+            {
+                viewportGO = viewportExisting.gameObject;
+            }
+            else
+            {
+                viewportGO = new GameObject("ResultsViewport", typeof(RectTransform), typeof(RectMask2D), typeof(ScrollRect));
+            }
+            viewportGO.transform.SetParent(panel, false);
+
+            var viewportRect = viewportGO.GetComponent<RectTransform>();
+            viewportRect.anchorMin = new Vector2(0f, 1f);
+            viewportRect.anchorMax = new Vector2(1f, 1f);
+            viewportRect.pivot = new Vector2(0.5f, 1f);
+            viewportRect.sizeDelta = new Vector2(-80, 380);
+            viewportRect.anchoredPosition = new Vector2(0, -110);
+
+            // RectMask2D clips to a plain rectangle without needing a Graphic
+            // at all (unlike the legacy Mask component, which masks via a
+            // Graphic's alpha and can end up hiding everything if that alpha
+            // rounds down to fully transparent). Remove any leftovers from
+            // an earlier run of this setup that used the old Mask approach.
+            var staleMask = viewportGO.GetComponent<Mask>();
+            if (staleMask != null) Object.DestroyImmediate(staleMask);
+            var staleImage = viewportGO.GetComponent<Image>();
+            if (staleImage != null) Object.DestroyImmediate(staleImage);
+            if (viewportGO.GetComponent<RectMask2D>() == null) viewportGO.AddComponent<RectMask2D>();
+
+            var containerTransform = viewportGO.transform.Find("ResultsContainer");
+            var containerGO = containerTransform != null ? containerTransform.gameObject
                 : new GameObject("ResultsContainer", typeof(RectTransform));
-            containerGO.transform.SetParent(panel, false);
+            containerGO.transform.SetParent(viewportGO.transform, false);
 
             var rect = containerGO.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
-            rect.sizeDelta = new Vector2(-80, 0);
-            rect.anchoredPosition = new Vector2(0, -110);
+            rect.sizeDelta = new Vector2(0, 0);
+            rect.anchoredPosition = Vector2.zero;
 
             var layout = containerGO.GetComponent<VerticalLayoutGroup>();
             if (layout == null) layout = containerGO.AddComponent<VerticalLayoutGroup>();
@@ -205,29 +243,70 @@ namespace Nodia.EditorTools
             if (fitter == null) fitter = containerGO.AddComponent<ContentSizeFitter>();
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
+            var scrollRect = viewportGO.GetComponent<ScrollRect>();
+            scrollRect.content = rect;
+            scrollRect.viewport = viewportRect;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 24f;
+
             return containerGO.transform;
         }
 
-        private static void GetOrCreateHint(Transform panel, TMP_FontAsset regularFont)
+        // Tab was advertised as the way to close this panel, but the WebGL
+        // IME package (WebGLTextInputFocus/WebGLInput on the query field)
+        // captures Tab for its own focus-cycling while that field has real
+        // browser focus, so it doesn't reliably reach NodeSearchController's
+        // own Tab handler. Removed rather than left as a hint that lies.
+        private static void RemoveObsoleteHint(Transform panel)
         {
             var existing = panel.Find("Hint");
-            var hintGO = existing != null ? existing.gameObject : new GameObject("Hint", typeof(RectTransform));
-            hintGO.transform.SetParent(panel, false);
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+        }
 
-            var rect = hintGO.GetComponent<RectTransform>();
+        // Tab is the only other way to close this panel, and browsers
+        // reserve Escape (so it can't be a fallback) - a real clickable
+        // button means a mouse alone is always enough to get out.
+        private static Button GetOrCreateCloseButton(Transform panel, Sprite cardSprite, TMP_FontAsset boldFont)
+        {
+            var existing = panel.Find("CloseButton");
+            var go = existing != null ? existing.gameObject : new GameObject("CloseButton", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(panel, false);
+            if (go.GetComponent<Button>() == null) go.AddComponent<Button>();
+
+            // Sits where the (now-removed) "Tab で閉じる" hint used to be -
+            // a real button in that spot instead of a label that lied.
+            var rect = go.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0f, 0f);
             rect.anchorMax = new Vector2(1f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
-            rect.sizeDelta = new Vector2(-40, 30);
-            rect.anchoredPosition = new Vector2(0, 24);
+            rect.sizeDelta = new Vector2(-80, 52);
+            rect.anchoredPosition = new Vector2(0, 20);
 
-            var text = hintGO.GetComponent<TextMeshProUGUI>();
-            if (text == null) text = hintGO.AddComponent<TextMeshProUGUI>();
-            text.text = "Tab で閉じる";
-            text.font = regularFont;
-            text.fontSize = 14;
-            text.color = MutedText;
+            var image = go.GetComponent<Image>();
+            image.sprite = cardSprite;
+            image.type = Image.Type.Sliced;
+            image.color = Accent;
+
+            var textTransform = go.transform.Find("Text");
+            var textGO = textTransform != null ? textTransform.gameObject : new GameObject("Text", typeof(RectTransform));
+            textGO.transform.SetParent(go.transform, false);
+            var textRect = textGO.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            var text = textGO.GetComponent<TextMeshProUGUI>();
+            if (text == null) text = textGO.AddComponent<TextMeshProUGUI>();
+            text.text = "閉じる";
+            text.font = boldFont;
+            text.fontSize = 18;
+            text.color = Color.black;
             text.alignment = TextAlignmentOptions.Center;
+
+            return go.GetComponent<Button>();
         }
 
         private static GameObject GetOrCreateResultRowPrefab(Sprite cardSprite, TMP_FontAsset regularFont)
